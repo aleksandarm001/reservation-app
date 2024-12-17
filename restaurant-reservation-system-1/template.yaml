@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Restaurant Reservation API
+
+  SAM Template for the Restaurant Reservation API
+
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+  Api:
+    TracingEnabled: True
+
+Resources:
+  # API Gateway Definition
+  RestApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev  # Stage name, change based on your needs
+      Name: restaurant-api-gateway
+      EndpointConfiguration:
+        Type: REGIONAL
+
+  # Lambda Function for Handling Restaurant Reservation
+  RestaurantReservationFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: reservation-system/  # Path to your code
+      Handler: app.lambda_handler  # Handler function
+      Runtime: python3.9  # Runtime environment
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: reservations  # Ovo automatski dodaje CRUD dozvole za tvoju tabelu
+        - SNSPublishMessagePolicy:
+            TopicName: ReservationConfirmation
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: reservations
+          SNS_TOPIC_ARN: !Ref SNSTopic
+      Events:
+        # GET Request for Checking Reservation Status
+        GetReservationStatus:
+          Type: Api 
+          Properties:
+            Path: /status
+            Method: GET
+            RestApiId: !Ref RestApiGateway
+
+        CreateObject:
+          Type: Api
+          Properties:
+            Path: /create
+            Method: POST
+            RestApiId: !Ref RestApiGateway
+        
+
+  # DynamoDB Table for Storing Reservations
+  DynamoDBTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: 'reservations'
+      AttributeDefinitions:
+        - AttributeName: 'reservation_id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'reservation_id'
+          KeyType: 'HASH'
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  # SNS Topic for Sending Reservation Confirmation Notifications
+  SNSTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: 'ReservationConfirmation'
