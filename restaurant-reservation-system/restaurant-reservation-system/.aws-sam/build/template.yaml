@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Restaurant Reservation API
+
+  SAM Template for the Restaurant Reservation API
+
+  '
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+  Api:
+    TracingEnabled: true
+Resources:
+  RestApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      Name: restaurant-api-gateway
+      EndpointConfiguration:
+        Type: REGIONAL
+  RestaurantReservationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: RestaurantReservationFunction
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+      - x86_64
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: reservations
+      - SNSPublishMessagePolicy:
+          TopicName: ReservationConfirmation
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: reservations
+          SNS_TOPIC_ARN:
+            Ref: SNSTopic
+      Events:
+        GetReservationStatus:
+          Type: Api
+          Properties:
+            Path: /status
+            Method: GET
+            RestApiId:
+              Ref: RestApiGateway
+        CreateObject:
+          Type: Api
+          Properties:
+            Path: /create
+            Method: POST
+            RestApiId:
+              Ref: RestApiGateway
+    Metadata:
+      SamResourceId: RestaurantReservationFunction
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: reservations
+      AttributeDefinitions:
+      - AttributeName: reservation_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: reservation_id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ReservationConfirmation

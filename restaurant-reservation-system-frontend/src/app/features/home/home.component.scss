@@ -1,0 +1,60 @@
+/* Home Page Styles */
+.home-container {
+    font-family: Arial, sans-serif;
+    color: #333;
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 1200px;
+    text-align: center;
+  }
+  
+  .home-header {
+    background-color: #007bff;
+    color: #fff;
+    padding: 40px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  
+    h1 {
+      margin: 0;
+      font-size: 2.5em;
+    }
+  
+    p {
+      font-size: 1.2em;
+    }
+  }
+  
+  .home-main {
+    .intro, .features {
+      margin: 20px 0;
+  
+      h2 {
+        color: #007bff;
+        font-size: 1.8em;
+      }
+  
+      p, li {
+        font-size: 1em;
+      }
+    }
+  
+    .features ul {
+      list-style: none;
+      padding: 0;
+  
+      li {
+        background: #f8f9fa;
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 5px;
+      }
+    }
+  }
+  
+  .home-footer {
+    margin-top: 30px;
+    font-size: 0.9em;
+    color: #666;
+  }
